@@ -1,0 +1,26 @@
+name: LETI-IARTI-CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install SWI-Prolog
+      run: |
+        sudo apt-add-repository ppa:swi-prolog/stable
+        sudo apt-get update
+        sudo apt-get install -y swi-prolog
+
+    - name: Run Tests
+      run: swipl -g "run_tests, halt(0)." -t "halt(1)." tests.pl
+
+    - name: Test Docker Build
+      run: docker build -t pizza-app:test .

@@ -1,0 +1,13 @@
+# === SWI-Prolog ===
+.swipl-history
+briefcase-BOM.pl
+
+# === Conteção / Docker ===
+*.log
+.docker/
+docker-compose.override.yml
+
+# === IDEs e Editores ===
+.vscode/
+.idea/
+.DS_Store
