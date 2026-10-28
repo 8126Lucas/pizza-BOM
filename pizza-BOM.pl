@@ -88,23 +88,43 @@ stock(parmigiano_reggiano, 1000, g).
 stock(salami, 1200, g).
 stock(ricotta, 1000, g).
 
-pizza(neapolitan, [], tbd).
-pizza(margherita, [], tbd).
-pizza(marinara, [], tbd).
-pizza(fruti_di_mare, [], tbd).
-pizza(prosciutto, [], tbd).
-pizza(al_funghi, [], tbd).
-pizza(sicilian, [], tbd).
-pizza(roman-style, [], tbd).
-pizza(chicago, [], tbd).
-pizza(new_york, [], tbd).
-pizza(meatball, [], tbd).
-pizza(stomboli, [], tbd).
-pizza(tomato_pie_nj, [], tbd).
-pizza(californian, [], tbd).
-pizza(st_louis, [], tbd).
-pizza(tuna_pizza, [], tbd).
-pizza(banana_com_canela, [], tbd).
-pizza(portuguesa, [], tbd).
-pizza(grapes_and_port_wine, [], vegetarian).
-pizza(calzone, [], tbd).
+pizza(neapolitan, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (tomato_sauce, 100), (mozzarella, 100), (basil, 10), (olive_oil, 10)], traditional).
+pizza(margherita, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (tomato_sauce, 100), (mozzarella, 150), (basil, 15)], vegetarian).
+pizza(marinara, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (tomato_sauce, 150), (olive_oil, 20)], vegan).
+pizza(fruti_di_mare, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (tomato_sauce, 100), (tuna, 100), (olive, 30), (onion, 30)], pescatarian).
+pizza(prosciutto, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (tomato_sauce, 100), (mozzarella, 100), (prosciutto, 50)], meat).
+pizza(al_funghi, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (tomato_sauce, 100), (mozzarella, 100), (mushroom, 80)], vegetarian).
+pizza(sicilian, [(flour, 300), (water, 150), (yeast, 10), (salt, 8), (tomato_sauce, 150), (mozzarella, 150), (olive_oil, 30)], vegetarian).
+pizza(roman_style, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (olive_oil, 15), (tomato_sauce, 100), (mozzarella, 100)], traditional).
+pizza(chicago, [(flour, 300), (water, 150), (yeast, 10), (salt, 5), (olive_oil, 40), (tomato_sauce, 200), (mozzarella, 200), (sausage, 100)], meat).
+pizza(new_york, [(flour, 250), (water, 150), (yeast, 5), (salt, 5), (tomato_sauce, 100), (mozzarella, 200)], vegetarian).
+pizza(meatball, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (tomato_sauce, 100), (mozzarella, 100), (minced_meat, 150)], meat).
+pizza(stomboli, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (mozzarella, 100), (ham, 50), (salami, 50)], meat).
+pizza(tomato_pie_nj, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (tomato_sauce, 200), (parmesan, 20)], vegetarian).
+pizza(californian, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (mozzarella, 100), (chicken, 100), (onion, 30)], meat).
+pizza(st_louis, [(flour, 200), (water, 100), (yeast, 2), (salt, 5), (tomato_sauce, 100), (emmental, 100)], vegetarian).
+pizza(tuna_pizza, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (tomato_sauce, 100), (mozzarella, 100), (tuna, 100), (onion, 50)], pescatarian).
+pizza(banana_com_canela, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (banana, 150), (condensed_milk, 50), (cinnamon, 10)], sweet).
+pizza(portuguesa, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (tomato_sauce, 100), (mozzarella, 100), (ham, 50), (egg, 2), (onion, 30), (olive, 20)], meat).
+pizza(grapes_and_port_wine, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (grape, 100), (port_wine, 30), (gorgonzola, 50)], vegetarian).
+pizza(calzone, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (tomato_sauce, 50), (mozzarella, 100), (ricotta, 50), (ham, 50)], meat).
+
+print_pizzas([]).
+print_pizzas([Pizza|PizzaList]):-
+    write(Pizza),
+    nl,
+    print_pizzas(PizzaList).
+
+% vegetarian_pizzas: Get all pizzas without meat or fish
+vegetarian_pizza_list(VegetarianList):-
+    findall(Pizza, (pizza(Pizza,_,Type), Type \= meat, Type \= pescatarian), VegetarianList).
+vegetarian_pizzas:-
+    vegetarian_pizza_list(Vegetarian_Pizzas),
+    print_pizzas(Vegetarian_Pizzas).
+
+% simple_pizzas: Get all pizzas with 6 ingredients or less
+simple_pizzas_list(SimpleList):-
+    findall(Pizza, (pizza(Pizza,IngList,_), length(IngList, IngNum), IngNum =< 6), SimpleList).
+simple_pizzas:-
+    simple_pizzas_list(Simple_Pizzas),
+    print_pizzas(Simple_Pizzas).
