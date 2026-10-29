@@ -1,5 +1,7 @@
 :-dynamic stock/2.
 
+% --- Knowledge Base ---
+
 ingredient(flour).
 ingredient(water).
 ingredient(tomato).
@@ -109,6 +111,29 @@ pizza(portuguesa, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (tomato_sa
 pizza(grapes_and_port_wine, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (grape, 100), (port_wine, 30), (gorgonzola, 50)], vegetarian).
 pizza(calzone, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (tomato_sauce, 50), (mozzarella, 100), (ricotta, 50), (ham, 50)], meat).
 
+stock(neapolitan, 10).
+stock(margherita, 10).
+stock(marinara, 10).
+stock(fruti_di_mare, 5).
+stock(prosciutto, 7).
+stock(al_funghi, 10).
+stock(sicilian, 9).
+stock(roman_style, 15).
+stock(chicago, 3).
+stock(new_york, 6).
+stock(meatball, 20).
+stock(stomboli, 6).
+stock(tomato_pie_nj, 6).
+stock(californian, 5).
+stock(st_louis, 10).
+stock(tuna_pizza, 8).
+stock(banana_com_canela, 0).
+stock(portuguesa, 8).
+stock(grapes_and_port_wine, 2).
+stock(calzone, 12).
+
+% ----------------------
+
 print_pizzas([]).
 print_pizzas([Pizza|PizzaList]):-
     write(Pizza),
@@ -128,3 +153,88 @@ simple_pizzas_list(SimpleList):-
 simple_pizzas:-
     simple_pizzas_list(Simple_Pizzas),
     print_pizzas(Simple_Pizzas).
+
+% conv_list: Takes a list of ingredients and adds their quantity, forming a pair [(quantity, ingredient)]
+convert_list(Quantity,[Ing|IngList],[(Quantity,Ing)|IngList1]):-
+    convert_list(Quantity,IngList,IngList1).
+convert_list(_,[],[]).
+
+% attend_stock_request (scenario): there's sufficient stock, of the ingredient, to attend the demanded quantity 
+attend_stock_request(Quantity,Ing,[(Quantity,Ing)],[]):- 
+    stock(Ing,InStock),
+    Quantity =< InStock,
+    !,
+    NewStock is InStock - Quantity,
+	retract(stock(Ing,InStock)),
+    asserta(stock(Ing,NewStock)).
+
+% attend_stock_request (scenario): the ingredient has a stock of 0
+attend_stock_request(Quantity,Ing,[],[(Quantity,Ing)]):- 
+    stock(Ing,0),
+    ingredient(Ing),
+    !.
+
+% attend_stock_request (scenario): the ingredient is in stock, but there's not enough
+attend_stock_request(Quantity,Ing,[(QuantityIng,Ing)],[(QuantityIng1,Ing)]):-
+    stock(Ing,QuantityIng),
+    ingredient(Ing),
+    !,
+	QuantityIng1 is Quantity - QuantityIng,
+	retract(stock(Ing,QuantityIng)),
+    asserta(stock(Ing,0)).
+
+% attend_stock_request (scenario): the pizza is not in stock (pre-made)
+attend_stock_request(Quantity,Pizza,LWS,LOS):- 
+    stock(Pizza,0),
+    pizza(Pizza,IngList,_),
+    !,
+	attend_pizza_requests(Quantity,IngList,LWS,LOS).
+
+% attend_stock_request (scenario): the ingredient is in stock, but there's not enough
+attend_stock_request(Quantity,Ing,[(QuantityIng,Ing)|LWS],LOS):-
+    stock(Ing,QuantityIng),
+    pizza(Ing,IngList,_),
+	QuantityIng1 is Quantity - QuantityIng,
+	retract(stock(Ing,QuantityIng)),
+    asserta(stock(Ing,0)),
+    attend_pizza_requests(QuantityIng1,IngList,LWS,LOS).
+
+% attend_pizza_requests:
+attend_pizza_requests(Quantity,IngList,LWS,LOS):-
+    convert_list(Quantity,IngList,QuantityIngList),
+    attend_pizza_requests1(QuantityIngList,LWS,LOS).
+
+% attend_pizza_requests1:
+attend_pizza_requests1([(Quantity,Ing)|IngList],LWS,LOS):-
+    attend_pizza_requests1(IngList,LWS_IngList,LOS_IngList),
+    attend_stock_request(Quantity,Ing,LWS_Ing,LOS_Ing),
+	append(LWS_Ing,LWS_IngList,LWS),
+	append(LOS_Ing,LOS_IngList,LOS).
+attend_pizza_requests1([],[],[]).
+
+% sum_delete:
+sum_delete(P,[(Q1,P)|LQP],Qf,LQP1):-
+    !,
+    sum_delete(P,LQP,Q2,LQP1),
+    Qf is Q1+Q2.
+sum_delete(P,[(Q,P1)|LQP],Qf,[(Q,P1)|LQP1]):-
+    sum_delete(P,LQP,Qf,LQP1).
+sum_delete(_,[],0,[]).
+
+% join_equals:
+join_equals([(Q,P)|LQP],[(Qf,P)|LQP1]):-
+    sum_delete(P,LQP,Q1,LQPi),
+    join_equals(LQPi,LQP1),
+    Qf is Q+Q1.
+join_equals([],[]).
+
+% manage_stock:
+manage_stock(Q,P,List_Withdraw_Stock,List_Order_Stock):-
+    attend_pizza_requests(Q,P,LWS,LOS),
+    write('LWS='),write(LWS),nl,
+    write('LOS='),write(LOS),nl,
+    join_equals(LWS,List_Withdraw_Stock),
+    write('List_Withdraw_Stock='),write(List_Withdraw_Stock),nl,
+    join_equals(LOS,List_Order_Stock),
+    write('List_Order_Stock='),write(List_Order_Stock),nl,
+    !.
