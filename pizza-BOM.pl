@@ -199,38 +199,38 @@ attend_stock_request(Quantity,Ing,[(QuantityIng,Ing)|LWS],LOS):-
     asserta(stock(Ing,0)),
     attend_pizza_requests(QuantityIng1,IngList,LWS,LOS).
 
-% attend_pizza_requests:
-attend_pizza_requests(Quantity,IngList,LWS,LOS):-
-    convert_list(Quantity,IngList,QuantityIngList),
-    attend_pizza_requests1(QuantityIngList,LWS,LOS).
+% attend_pizza_requests: 
+attend_pizza_requests(Quantity,PizzaList,LWS,LOS):-
+    convert_list(Quantity,PizzaList,QuantityPizzaList),
+    attend_pizza_requests1(QuantityPizzaList,LWS,LOS).
 
 % attend_pizza_requests1:
-attend_pizza_requests1([(Quantity,Ing)|IngList],LWS,LOS):-
-    attend_pizza_requests1(IngList,LWS_IngList,LOS_IngList),
-    attend_stock_request(Quantity,Ing,LWS_Ing,LOS_Ing),
+attend_pizza_requests1([(Quantity,Pizza)|PizzaList],LWS,LOS):-
+    attend_pizza_requests1(PizzaList,LWS_IngList,LOS_IngList),
+    attend_stock_request(Quantity,Pizza,LWS_Ing,LOS_Ing),
 	append(LWS_Ing,LWS_IngList,LWS),
 	append(LOS_Ing,LOS_IngList,LOS).
 attend_pizza_requests1([],[],[]).
 
 % sum_delete:
-sum_delete(P,[(Q1,P)|LQP],Qf,LQP1):-
+sum_delete(Ing,[(Quantity1,Ing)|QuantityIngList],FinalQantity,QuantityIngList1):-
     !,
-    sum_delete(P,LQP,Q2,LQP1),
-    Qf is Q1+Q2.
-sum_delete(P,[(Q,P1)|LQP],Qf,[(Q,P1)|LQP1]):-
-    sum_delete(P,LQP,Qf,LQP1).
+    sum_delete(Ing,QuantityIngList,Quantity2,QuantityIngList1),
+    FinalQantity is Quantity1 + Quantity2.
+sum_delete(Ing,[(Quantity,Ing1)|QuantityIngList],FinalQantity,[(Quantity,Ing1)|QuantityIngList1]):-
+    sum_delete(Ing,QuantityIngList,FinalQantity,QuantityIngList1).
 sum_delete(_,[],0,[]).
 
 % join_equals:
-join_equals([(Q,P)|LQP],[(Qf,P)|LQP1]):-
-    sum_delete(P,LQP,Q1,LQPi),
-    join_equals(LQPi,LQP1),
-    Qf is Q+Q1.
+join_equals([(Quantity,Ing)|QuantityIngList],[(FinalQantity,Ing)|QuantityIngList1]):-
+    sum_delete(Ing,QuantityIngList,Quantity1,QuantityIngListI),
+    join_equals(QuantityIngListI,QuantityIngList1),
+    FinalQantity is Quantity + Quantity1.
 join_equals([],[]).
 
 % manage_stock:
-manage_stock(Q,P,List_Withdraw_Stock,List_Order_Stock):-
-    attend_pizza_requests(Q,P,LWS,LOS),
+manage_stock(Quantity,Pizza,List_Withdraw_Stock,List_Order_Stock):-
+    attend_pizza_requests(Quantity,Pizza,LWS,LOS),
     write('LWS='),write(LWS),nl,
     write('LOS='),write(LOS),nl,
     join_equals(LWS,List_Withdraw_Stock),
