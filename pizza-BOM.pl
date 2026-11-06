@@ -1,6 +1,8 @@
-:-dynamic stock/2.
+:-dynamic stock/3.
 
 % --- Knowledge Base ---
+
+% Ingredients
 
 ingredient(flour).
 ingredient(water).
@@ -46,6 +48,54 @@ ingredient(parmigiano_reggiano).
 ingredient(salami).
 ingredient(ricotta).
 
+% Prices
+
+price(flour, 0.0012).
+price(water, 0.0005).
+price(tomato, 0.0020).
+price(yeast, 0.0050).
+price(salt, 0.0010).
+price(olive_oil, 0.0070).
+price(basil, 0.0100).
+price(tomato_sauce, 0.0030).
+price(bacon, 0.0100).
+price(mozzarella, 0.0080).
+price(semolina, 0.0020).
+price(pineapple, 0.0030).
+price(apple, 0.0020).
+price(olive, 0.0050).
+price(jalapeno, 0.0060).
+price(chicken, 0.0070).
+price(sausage, 0.0080).
+price(chorizo, 0.0100).
+price(pepper, 0.0150).
+price(cummin, 0.0200).
+price(bell_pepper, 0.0040).
+price(ham, 0.0090).
+price(prosciutto, 0.0250).
+price(sunflower_oil, 0.0030).
+price(parmesan, 0.0150).
+price(emmental, 0.0120).
+price(chia, 0.0150).
+price(cornichon, 0.0050).
+price(cherry_tomato, 0.0060).
+price(mushroom, 0.0050).
+price(minced_meat, 0.0080).
+price(onion, 0.0020).
+price(egg, 0.2000).
+price(tuna, 0.0100).
+price(banana, 0.0020).
+price(condensed_milk, 0.0040).
+price(cinnamon, 0.0150).
+price(port_wine, 0.0100).
+price(grape, 0.0040).
+price(gorgonzola, 0.0180).
+price(parmigiano_reggiano, 0.0200).
+price(salami, 0.0120).
+price(ricotta, 0.0090).
+
+% Ingredient Stock
+
 stock(flour, 1000, g).
 stock(water, 2000, ml).
 stock(tomato, 500, g).
@@ -90,6 +140,8 @@ stock(parmigiano_reggiano, 1000, g).
 stock(salami, 1200, g).
 stock(ricotta, 1000, g).
 
+% Pizzas
+
 pizza(neapolitan, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (tomato_sauce, 100), (mozzarella, 100), (basil, 10), (olive_oil, 10)], traditional).
 pizza(margherita, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (tomato_sauce, 100), (mozzarella, 150), (basil, 15)], vegetarian).
 pizza(marinara, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (tomato_sauce, 150), (olive_oil, 20)], vegan).
@@ -111,26 +163,28 @@ pizza(portuguesa, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (tomato_sa
 pizza(grapes_and_port_wine, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (grape, 100), (port_wine, 30), (gorgonzola, 50)], vegetarian).
 pizza(calzone, [(flour, 200), (water, 120), (yeast, 5), (salt, 5), (tomato_sauce, 50), (mozzarella, 100), (ricotta, 50), (ham, 50)], meat).
 
-stock(neapolitan, 10).
-stock(margherita, 10).
-stock(marinara, 10).
-stock(fruti_di_mare, 5).
-stock(prosciutto, 7).
-stock(al_funghi, 10).
-stock(sicilian, 9).
-stock(roman_style, 15).
-stock(chicago, 3).
-stock(new_york, 6).
-stock(meatball, 20).
-stock(stomboli, 6).
-stock(tomato_pie_nj, 6).
-stock(californian, 5).
-stock(st_louis, 10).
-stock(tuna_pizza, 8).
-stock(banana_com_canela, 0).
-stock(portuguesa, 8).
-stock(grapes_and_port_wine, 2).
-stock(calzone, 12).
+% Pizza Stock
+
+stock(neapolitan, 10, un).
+stock(margherita, 10, un).
+stock(marinara, 10, un).
+stock(fruti_di_mare, 5, un).
+stock(prosciutto, 7, un).
+stock(al_funghi, 10, un).
+stock(sicilian, 9, un).
+stock(roman_style, 15, un).
+stock(chicago, 3, un).
+stock(new_york, 6, un).
+stock(meatball, 20, un).
+stock(stomboli, 6, un).
+stock(tomato_pie_nj, 6, un).
+stock(californian, 5, un).
+stock(st_louis, 10, un).
+stock(tuna_pizza, 8, un).
+stock(banana_com_canela, 0, un).
+stock(portuguesa, 8, un).
+stock(grapes_and_port_wine, 2, un).
+stock(calzone, 12, un).
 
 % ----------------------
 
@@ -155,54 +209,55 @@ simple_pizzas:-
     print_pizzas(Simple_Pizzas).
 
 % conv_list: Takes a list of ingredients and adds their quantity, forming a pair [(quantity, ingredient)]
-convert_list(Quantity,[Ing|IngList],[(Quantity,Ing)|IngList1]):-
+convert_list(Quantity,[(Ing, IngQuantity)|IngList],[(TotalQuantity, Ing)|IngList1]):-
+    TotalQuantity is Quantity * IngQuantity,
     convert_list(Quantity,IngList,IngList1).
 convert_list(_,[],[]).
 
 % attend_stock_request (scenario): there's sufficient stock, of the ingredient, to attend the demanded quantity 
 attend_stock_request(Quantity,Ing,[(Quantity,Ing)],[]):- 
-    stock(Ing,InStock),
+    stock(Ing,InStock,Unit),
     Quantity =< InStock,
     !,
     NewStock is InStock - Quantity,
-	retract(stock(Ing,InStock)),
-    asserta(stock(Ing,NewStock)).
+	retract(stock(Ing,InStock,Unit)),
+    asserta(stock(Ing,NewStock,Unit)).
 
 % attend_stock_request (scenario): the ingredient has a stock of 0
 attend_stock_request(Quantity,Ing,[],[(Quantity,Ing)]):- 
-    stock(Ing,0),
+    stock(Ing,0,_),
     ingredient(Ing),
     !.
 
 % attend_stock_request (scenario): the ingredient is in stock, but there's not enough
 attend_stock_request(Quantity,Ing,[(QuantityIng,Ing)],[(QuantityIng1,Ing)]):-
-    stock(Ing,QuantityIng),
+    stock(Ing,QuantityIng,Unit),
     ingredient(Ing),
     !,
 	QuantityIng1 is Quantity - QuantityIng,
-	retract(stock(Ing,QuantityIng)),
-    asserta(stock(Ing,0)).
+	retract(stock(Ing,QuantityIng,Unit)),
+    asserta(stock(Ing,0,Unit)).
 
 % attend_stock_request (scenario): the pizza is not in stock (pre-made)
 attend_stock_request(Quantity,Pizza,LWS,LOS):- 
-    stock(Pizza,0),
+    stock(Pizza,0,_),
     pizza(Pizza,IngList,_),
     !,
 	attend_pizza_requests(Quantity,IngList,LWS,LOS).
 
 % attend_stock_request (scenario): the ingredient is in stock, but there's not enough
 attend_stock_request(Quantity,Ing,[(QuantityIng,Ing)|LWS],LOS):-
-    stock(Ing,QuantityIng),
+    stock(Ing,QuantityIng,Unit),
     pizza(Ing,IngList,_),
 	QuantityIng1 is Quantity - QuantityIng,
-	retract(stock(Ing,QuantityIng)),
-    asserta(stock(Ing,0)),
+	retract(stock(Ing,QuantityIng,Unit)),
+    asserta(stock(Ing,0,Unit)),
     attend_pizza_requests(QuantityIng1,IngList,LWS,LOS).
 
 % attend_pizza_requests: 
-attend_pizza_requests(Quantity,PizzaList,LWS,LOS):-
-    convert_list(Quantity,PizzaList,QuantityPizzaList),
-    attend_pizza_requests1(QuantityPizzaList,LWS,LOS).
+attend_pizza_requests(Quantity, PizzaList, LWS, LOS) :-
+    convert_list(Quantity, PizzaList, QuantityPizzaList),
+    attend_pizza_requests1(QuantityPizzaList, LWS, LOS).
 
 % attend_pizza_requests1:
 attend_pizza_requests1([(Quantity,Pizza)|PizzaList],LWS,LOS):-
@@ -228,13 +283,31 @@ join_equals([(Quantity,Ing)|QuantityIngList],[(FinalQantity,Ing)|QuantityIngList
     FinalQantity is Quantity + Quantity1.
 join_equals([],[]).
 
+% calculate_price:
+calculate_price([(Quantity, Pizza)|QuantityIngList], TC):-
+    pizza(Pizza,IngList,_),
+    !,
+    convert_list(Quantity, IngList, QuantityIngList1),
+    calculate_price(QuantityIngList1, TC1),
+    calculate_price(QuantityIngList, TC2),
+    TC is TC2 + TC1.
+calculate_price([(Quantity,Ing)|QuantityIngList], TC):-
+    calculate_price(QuantityIngList, TC1),
+    price(Ing,Price),
+    TC is TC1 + (Price * Quantity).
+calculate_price([],0).
+
 % manage_stock:
 manage_stock(Quantity,Pizza,List_Withdraw_Stock,List_Order_Stock):-
-    attend_pizza_requests(Quantity,Pizza,LWS,LOS),
-    write('LWS='),write(LWS),nl,
-    write('LOS='),write(LOS),nl,
+    attend_stock_request(Quantity, Pizza, LWS, LOS),
+    write('LWS = '),write(LWS),nl,
+    write('LOS = '),write(LOS),nl,
     join_equals(LWS,List_Withdraw_Stock),
-    write('List_Withdraw_Stock='),write(List_Withdraw_Stock),nl,
+    write('List_Withdraw_Stock = '),write(List_Withdraw_Stock),nl,
     join_equals(LOS,List_Order_Stock),
-    write('List_Order_Stock='),write(List_Order_Stock),nl,
+    write('List_Order_Stock = '),write(List_Order_Stock),nl,
+    calculate_price(List_Withdraw_Stock, TotalCostLWS),
+    calculate_price(List_Order_Stock, TotalCostLOS),
+    TotalCost is TotalCostLWS + TotalCostLOS,
+    format('Total_Cost = ~2f€~n', [TotalCost]),
     !.
